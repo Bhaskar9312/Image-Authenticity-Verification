@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Online News Authenticity Verification Platform{% endblock %}
+
+{% block content %}
+<div class="hero-box">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <span class="badge bg-primary px-3 py-2 text-uppercase mb-3">Enterprise Newsroom Defense</span>
+            <h1 class="display-5 fw-bold mb-3">Intelligent News Media Authenticity & Forgery Verification</h1>
+            <p class="lead text-secondary mb-4">
+                Combines <strong>Deep Learning AI Forgery Detection</strong> with <strong>Cryptographic SHA-256 Hashing</strong> and <strong>RSA-PSS Digital Signatures</strong> to verify origin, detect deepfakes, and ensure media integrity across online journalism.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="{{ url_for('routes.verify') }}" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check"></i> Verify Media File
+                </a>
+                {% if not current_user %}
+                <a href="{{ url_for('routes.login') }}" class="btn btn-outline-light btn-lg">
+                    Journalist Login
+                </a>
+                {% elif current_user['role'] in ['journalist', 'admin'] %}
+                <a href="{{ url_for('routes.journalist_dashboard') }}" class="btn btn-outline-info btn-lg">
+                    Journalist Signing Studio
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block text-center">
+            <i class="bi bi-shield-lock-fill text-info" style="font-size: 8rem; opacity: 0.85;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Platform Statistics Banner -->
+<div class="row g-3 mb-5">
+    <div class="col-md-4">
+        <div class="stat-pill">
+            <div class="stat-num">{{ total_verifications }}</div>
+            <div class="stat-label">Media Verifications Performed</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-pill">
+            <div class="stat-num">{{ total_signed_media }}</div>
+            <div class="stat-label">Cryptographically Signed News Assets</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-pill">
+            <div class="stat-num">{{ total_trusted_journalists }}</div>
+            <div class="stat-label">Verified Journalist Identities</div>
+        </div>
+    </div>
+</div>
+
+<!-- Three Convergent Domains Showcase -->
+<h3 class="fw-bold mb-4"><i class="bi bi-diagram-3 text-info"></i> The Three Convergent Technical Domains</h3>
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 text-info mb-3">
+                    <i class="bi bi-cpu fs-2"></i>
+                    <h5 class="card-title fw-bold m-0">1. Artificial Intelligence</h5>
+                </div>
+                <p class="text-secondary small">
+                    Analyzes visual and temporal pixel integrity to detect synthetically generated content and deepfake manipulation:
+                </p>
+                <ul class="text-secondary small ps-3">
+                    <li><strong>CLIP ViT-L/14</strong>: 10-view calibrated synthetic photograph classifier.</li>
+                    <li><strong>ConvNeXt-Tiny Spatial</strong>: Artifact & boundary seam detector.</li>
+                    <li><strong>8×8 Block DCT</strong>: Spectral upsampling frequency branch.</li>
+                    <li><strong>Differential BiGRU</strong>: Multi-frame temporal sequence coherence head.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 text-warning mb-3">
+                    <i class="bi bi-key fs-2"></i>
+                    <h5 class="card-title fw-bold m-0">2. Cryptography</h5>
+                </div>
+                <p class="text-secondary small">
+                    Provides mathematical proof of origin, tamper detection, and source non-repudiation:
+                </p>
+                <ul class="text-secondary small ps-3">
+                    <li><strong>SHA-256 Hashing</strong>: Bit-level unique fingerprinting of media.</li>
+                    <li><strong>RSA-2048 Asymmetric Keys</strong>: Bound to registered journalists.</li>
+                    <li><strong>RSA-PSS Digital Signatures</strong>: Probabilistic signature scheme proving media integrity.</li>
+                    <li><strong>Tamper Detection</strong>: Instant bit-flip detection if a signed image/video is altered.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 text-success mb-3">
+                    <i class="bi bi-shield-check fs-2"></i>
+                    <h5 class="card-title fw-bold m-0">3. Information Security</h5>
+                </div>
+                <p class="text-secondary small">
+                    Guarantees zero-trust defense, access control, and comprehensive threat monitoring:
+                </p>
+                <ul class="text-secondary small ps-3">
+                    <li><strong>Role-Based Access Control (RBAC)</strong>: Admin, Journalist, General User.</li>
+                    <li><strong>Binary File Validation</strong>: Magic bytes verification against extension spoofing.</li>
+                    <li><strong>Threat & Anomaly Detection</strong>: Brute-force lockout and signature tampering alerts.</li>
+                    <li><strong>Immutable Audit Logging</strong>: End-to-end security audit trail in SQLite.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

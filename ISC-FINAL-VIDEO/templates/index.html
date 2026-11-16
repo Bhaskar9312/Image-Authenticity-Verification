@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeriVid AI - Deepfake & Video Forgery Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --warning: #f59e0b;
+      --purple: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(17, 24, 39, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ffffff 40%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .upload-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dropzone {
+      border: 2px dashed #374151;
+      border-radius: 12px;
+      padding: 2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(17, 24, 39, 0.4);
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .dropzone input { display: none; }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .sample-select {
+      width: 100%;
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+
+    /* Results Dashboard */
+    .dashboard { display: none; margin-top: 2rem; }
+
+    .verdict-banner {
+      border-radius: 14px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid;
+    }
+
+    .verdict-fake {
+      background: var(--danger-bg);
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .verdict-real {
+      background: var(--success-bg);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .verdict-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .verdict-fake .verdict-title { color: #f87171; }
+    .verdict-real .verdict-title { color: #34d399; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-fake { background: #ef4444; color: white; }
+    .badge-real { background: #10b981; color: white; }
+
+    /* Composition split bar */
+    .split-meter {
+      margin: 1.5rem 0;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .meter-bar {
+      height: 24px;
+      border-radius: 12px;
+      background: #1f2937;
+      display: flex;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .meter-ai {
+      background: linear-gradient(90deg, #ef4444, #f87171);
+      transition: width 1s ease-in-out;
+    }
+
+    .meter-real {
+      background: linear-gradient(90deg, #34d399, #10b981);
+      transition: width 1s ease-in-out;
+    }
+
+    .forensic-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .forensic-grid { grid-template-columns: 1fr; }
+    }
+
+    .metric-card {
+      background: #1a2234;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 1.85rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0.5rem 0;
+    }
+
+    .timeline-container {
+      margin-top: 1.5rem;
+    }
+
+    .evidence-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .evidence-card {
+      background: #1f2937;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #374151;
+    }
+
+    .evidence-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .evidence-info {
+      padding: 0.5rem;
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Loading Spinner */
+    .spinner-box {
+      display: none;
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #1f2937;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <span>VeriVid <span style="color: #60a5fa;">AI Forgery Guard</span></span>
+    </a>
+    <div style="font-size: 0.85rem; color: var(--text-muted);">
+      EfficientNet-B4 + 8x8 DCT + BiGRU Fusion
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="hero">
+      <h1>AI-Based Video Forgery Detection</h1>
+      <p>Analyze any video to verify authenticity, quantify exact AI vs Real content proportions, and pinpoint temporal manipulation intervals.</p>
+    </div>
+
+    <!-- Inputs Row -->
+    <div class="upload-grid">
+      <!-- Upload Card -->
+      <div class="card">
+        <h3>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+          Upload Video File
+        </h3>
+        <div class="dropzone" id="dropzone">
+          <svg width="40" height="40" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="margin-bottom: 0.5rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <p style="font-weight: 600; margin-bottom: 0.25rem;">Drag & drop video here, or browse</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">MP4, AVI, MOV supported (up to 100MB)</p>
+          <input type="file" id="fileInput" accept="video/mp4,video/avi,video/quicktime">
+        </div>
+        <p id="selectedFileText" style="margin-top: 0.75rem; font-size: 0.9rem; color: #60a5fa;"></p>
+      </div>
+
+      <!-- Sample Selector Card -->
+      <div class="card">
+        <h3>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+          Or Choose from Benchmark Dataset
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">
+          Select pre-loaded video samples from Celeb-DF dataset in <code style="color: #93c5fd;">data/uploads/</code>:
+        </p>
+        <select class="sample-select" id="sampleSelect">
+          <option value="">-- Choose a benchmark sample video --</option>
+        </select>
+        <button class="btn" id="analyzeBtn" style="width: 100%; justify-content: center; margin-top: 0.5rem;" disabled>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          Analyze Video for AI Forgery
+        </button>
+      </div>
+    </div>
+
+    <!-- Spinner -->
+    <div class="spinner-box" id="spinnerBox">
+      <div class="spinner"></div>
+      <h3 style="margin-bottom: 0.25rem;">Analyzing Video Frames...</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Extracting facial landmarks, computing 8x8 DCT spectra, and evaluating temporal BiGRU coherence...
+      </p>
+    </div>
+
+    <!-- Results Dashboard -->
+    <div class="dashboard" id="dashboard">
+      <!-- Verdict Banner -->
+      <div class="verdict-banner" id="verdictBanner">
+        <div>
+          <span class="badge" id="verdictBadge">DECISION</span>
+          <h2 class="verdict-title" id="verdictTitle" style="margin-top: 0.5rem;">Authentic Video</h2>
+          <p id="verdictSummary" style="color: var(--text-muted); margin-top: 0.25rem; font-size: 0.95rem;"></p>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Overall AI Probability</div>
+          <div style="font-size: 2.25rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;" id="overallProbText">0.0%</div>
+        </div>
+      </div>
+
+      <!-- Core Question: How much content is AI vs Real -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h3>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
+          Content Composition: AI vs Real Proportion
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem;" id="compositionExplanation">
+          Frame-by-frame forensic analysis measuring the exact distribution of synthetic vs authentic media across the video.
+        </p>
+        
+        <div class="split-meter">
+          <div class="meter-label">
+            <span style="color: #f87171;" id="aiMeterLabel">AI Manipulated: 0.0%</span>
+            <span style="color: #34d399;" id="realMeterLabel">Authentic Real: 100.0%</span>
+          </div>
+          <div class="meter-bar">
+            <div class="meter-ai" id="meterAiBar" style="width: 0%;"></div>
+            <div class="meter-real" id="meterRealBar" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forensic Branch Breakdown -->
+      <div class="forensic-grid">
+        <div class="metric-card">
+          <div style="color: #10b981; font-weight: 700; font-size: 0.9rem;">SPATIAL ARTIFACTS</div>
+          <div class="metric-val" id="spatialScoreVal" style="color: #34d399;">0%</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">ConvNeXt-Tiny Facial Boundary & Artifacts</div>
+        </div>
+        <div class="metric-card">
+          <div style="color: #f59e0b; font-weight: 700; font-size: 0.9rem;">FREQUENCY ANOMALIES</div>
+          <div class="metric-val" id="freqScoreVal" style="color: #fbbf24;">0%</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">8x8 DCT Spectral Grid & Upsampling</div>
+        </div>
+        <div class="metric-card">
+          <div style="color: #8b5cf6; font-weight: 700; font-size: 0.9rem;">TEMPORAL FLICKER</div>
+          <div class="metric-val" id="temporalScoreVal" style="color: #a78bfa;">0%</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">BiGRU Differential Inter-frame Motion</div>
+        </div>
+      </div>
+
+      <!-- Second-by-Second Timeline Chart -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h3>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+          Second-by-Second Forgery Timeline
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+          Shows manipulation confidence throughout video playback. Values exceeding 50% indicate detected AI manipulation.
+        </p>
+        <div style="height: 240px; position: relative;">
+          <canvas id="timelineChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Keyframe Evidence Gallery -->
+      <div class="card">
+        <h3>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          Suspicious Keyframe Evidence
+        </h3>
+        <div class="evidence-gallery" id="evidenceGallery"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let selectedFile = null;
+    let selectedSample = "";
+    let timelineChart = null;
+
+    // Load available sample videos
+    fetch('/api/samples')
+      .then(res => res.json())
+      .then(data => {
+        const select = document.getElementById('sampleSelect');
+        data.samples.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.filename;
+          opt.textContent = `${s.filename} (${s.size_mb} MB)`;
+          select.appendChild(opt);
+        });
+      });
+
+    // Dropzone logic
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const selectedFileText = document.getElementById('selectedFileText');
+    const sampleSelect = document.getElementById('sampleSelect');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
+    });
+
+    sampleSelect.addEventListener('change', (e) => {
+      selectedSample = e.target.value;
+      if (selectedSample) {
+        selectedFile = null;
+        fileInput.value = "";
+        selectedFileText.textContent = `Selected sample: ${selectedSample}`;
+        analyzeBtn.disabled = false;
+      } else {
+        selectedFileText.textContent = "";
+        analyzeBtn.disabled = !selectedFile;
+      }
+    });
+
+    function handleFileSelect(file) {
+      selectedFile = file;
+      selectedSample = "";
+      sampleSelect.value = "";
+      selectedFileText.textContent = `Uploaded: ${file.name} (${(file.size / (1024*1024)).toFixed(1)} MB)`;
+      analyzeBtn.disabled = false;
+    }
+
+    // Trigger analysis
+    analyzeBtn.addEventListener('click', () => {
+      const formData = new FormData();
+      if (selectedFile) {
+        formData.append('video_file', selectedFile);
+      } else if (selectedSample) {
+        formData.append('sample_filename', selectedSample);
+      } else {
+        return;
+      }
+
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('spinnerBox').style.display = 'block';
+      analyzeBtn.disabled = true;
+
+      fetch('/api/analyze', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('spinnerBox').style.display = 'none';
+        analyzeBtn.disabled = false;
+        if (data.error) {
+          alert('Error during analysis: ' + data.error);
+          return;
+        }
+        renderDashboard(data);
+      })
+      .catch(err => {
+        document.getElementById('spinnerBox').style.display = 'none';
+        analyzeBtn.disabled = false;
+        alert('Analysis request failed: ' + err);
+      });
+    });
+
+    function renderDashboard(data) {
+      const v = data.verdict;
+      const c = data.content_composition;
+      const f = data.forensic_branch_breakdown;
+
+      // Banner
+      const banner = document.getElementById('verdictBanner');
+      const badge = document.getElementById('verdictBadge');
+      const title = document.getElementById('verdictTitle');
+      const summary = document.getElementById('verdictSummary');
+      const probText = document.getElementById('overallProbText');
+
+      banner.className = 'verdict-banner ' + (v.code === 'FAKE' ? 'verdict-fake' : 'verdict-real');
+      badge.className = 'badge ' + (v.code === 'FAKE' ? 'badge-fake' : 'badge-real');
+      badge.textContent = `${v.code} (${v.confidence_level} Confidence)`;
+      title.textContent = v.overall_decision;
+      summary.textContent = c.summary;
+      probText.textContent = `${v.overall_ai_percentage}%`;
+
+      // Split meter
+      document.getElementById('aiMeterLabel').textContent = `AI Manipulated: ${c.ai_content_percentage}%`;
+      document.getElementById('realMeterLabel').textContent = `Authentic Real: ${c.real_content_percentage}%`;
+      document.getElementById('meterAiBar').style.width = `${c.ai_content_percentage}%`;
+      document.getElementById('meterRealBar').style.width = `${c.real_content_percentage}%`;
+      document.getElementById('compositionExplanation').textContent = 
+        `Of the ${data.video_metadata.frames_analyzed} frames analyzed across this video, ${c.ai_frames_detected} frames (${c.ai_content_percentage}%) show deepfake / AI manipulation artifacts, while ${c.real_frames_detected} frames (${c.real_content_percentage}%) show authentic characteristics.`;
+
+      // Branch scores
+      document.getElementById('spatialScoreVal').textContent = `${f.spatial_branch.percentage}%`;
+      document.getElementById('freqScoreVal').textContent = `${f.frequency_branch.percentage}%`;
+      document.getElementById('temporalScoreVal').textContent = `${f.temporal_branch.percentage}%`;
+
+      // Timeline Chart
+      renderTimelineChart(data.timeline);
+
+      // Evidence gallery
+      const gallery = document.getElementById('evidenceGallery');
+      gallery.innerHTML = '';
+      if (data.evidence_frames && data.evidence_frames.length > 0) {
+        data.evidence_frames.forEach(ev => {
+          const card = document.createElement('div');
+          card.className = 'evidence-card';
+          card.innerHTML = `
+            <img src="/api/evidence/${encodeURIComponent(ev.path.split(/[\\\\/]/).pop())}" alt="Keyframe">
+            <div class="evidence-info">
+              <div>Time: ${ev.timestamp}</div>
+              <div style="color: ${ev.ai_score >= 0.5 ? '#f87171' : '#34d399'};">AI Prob: ${(ev.ai_score * 100).toFixed(1)}%</div>
+            </div>
+          `;
+          gallery.appendChild(card);
+        });
+      } else {
+        gallery.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">No high-confidence anomaly frames recorded.</p>';
+      }
+
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderTimelineChart(timeline) {
+      const ctx = document.getElementById('timelineChart').getContext('2d');
+      const labels = timeline.map(t => t.timestamp_str);
+      const scores = timeline.map(t => t.ai_percentage);
+
+      if (timelineChart) timelineChart.destroy();
+
+      timelineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'AI Forgery Probability (%)',
+            data: scores,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: scores.map(s => s >= 50 ? '#ef4444' : '#10b981')
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              grid: { color: '#1f2937' },
+              ticks: { color: '#9ca3af' }
+            },
+            x: {
+              grid: { color: '#1f2937' },
+              ticks: { color: '#9ca3af' }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}User Registration{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <div class="card-header bg-transparent text-center border-0 pt-3">
+                <i class="bi bi-person-plus-fill text-info fs-1"></i>
+                <h3 class="fw-bold mt-2">Create an Account</h3>
+                <p class="text-secondary small">Join the News Integrity Verification Network</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('routes.register') }}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Full Name</label>
+                            <input type="text" name="full_name" class="form-control" placeholder="Jane Doe" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Username</label>
+                            <input type="text" name="username" class="form-control" placeholder="jane_journalist" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Minimum 6 characters" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">User Role</label>
+                        <select name="role" id="roleSelect" class="form-select" onchange="toggleOrgField(this.value)">
+                            <option value="user">General User (Verify media & view reports)</option>
+                            <option value="journalist">Journalist / Newsroom (Sign original media with RSA-2048)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4" id="orgGroup">
+                        <label class="form-label text-secondary small fw-bold">News Organization / Agency</label>
+                        <input type="text" name="organization" class="form-control" placeholder="e.g. Associated Press, BBC News, Independent Wire">
+                        <div class="form-text text-muted small">Journalist accounts require verification and administrator approval before signing.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="bi bi-person-check"></i> Register Account
+                    </button>
+                </form>
+
+                <div class="text-center mt-3 pt-3 border-top border-secondary">
+                    <span class="text-secondary small">Already have an account? </span>
+                    <a href="{{ url_for('routes.login') }}" class="text-info small fw-bold">Log In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleOrgField(role) {
+    const orgGroup = document.getElementById('orgGroup');
+    if (role === 'journalist') {
+        orgGroup.style.display = 'block';
+    } else {
+        orgGroup.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}User Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-3">
+            <div class="card-header bg-transparent text-center border-0 pt-3">
+                <i class="bi bi-shield-lock-fill text-info fs-1"></i>
+                <h3 class="fw-bold mt-2">Secure Authentication</h3>
+                <p class="text-secondary small">Access Journalist Signing Studio or Security Console</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('routes.login') }}">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control" placeholder="e.g. reuters_editor or admin" required autofocus>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-key"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                        </div>
+                        <div class="form-text text-muted small">Protected by brute-force rate limiting (5 attempts max).</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="bi bi-box-arrow-in-right"></i> Log In
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top border-secondary">
+                    <span class="text-secondary small">Don't have an account? </span>
+                    <a href="{{ url_for('routes.register') }}" class="text-info small fw-bold">Register as User or Journalist</a>
+                </div>
+
+                <div class="alert alert-secondary mt-3 p-2 small">
+                    <strong>Demo Accounts:</strong><br>
+                    * Admin: <code>admin</code> / <code>Admin@12345</code><br>
+                    * Journalist: <code>reuters_editor</code> / <code>Journo@12345</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Verify Media File (Photo & Video){% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card p-4">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <h2 class="fw-bold mb-1"><i class="bi bi-shield-check text-info"></i> Media Authenticity Verification</h2>
+                        <p class="text-secondary small m-0">Upload any photo or video to perform deepfake AI analysis and cryptographic source verification.</p>
+                    </div>
+                    <span class="badge bg-dark border border-secondary px-3 py-2 text-info">
+                        <i class="bi bi-magic"></i> Auto-Detects Photo vs Video
+                    </span>
+                </div>
+                <hr class="border-secondary mt-3 mb-0">
+            </div>
+
+            <div class="card-body pt-4">
+                <form method="POST" action="{{ url_for('routes.verify') }}" enctype="multipart/form-data" id="verifyForm">
+                    <!-- Media File Dropzone -->
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">1. Select Media File (Image or Video) *</label>
+                        <div class="upload-dropzone" id="dropzone" onclick="document.getElementById('mediaFileInput').click()">
+                            <i class="bi bi-cloud-arrow-up text-info display-4 mb-2 d-block"></i>
+                            <h5 class="fw-bold" id="filePromptText">Drag & Drop Media File Here, or Click to Browse</h5>
+                            <p class="text-secondary small mb-2" id="fileSubtext">
+                                Supported Images: <strong>JPG, PNG, WEBP</strong> (up to 25 MB)<br>
+                                Supported Videos: <strong>MP4, MOV, MKV, AVI</strong> (up to 100 MB)
+                            </p>
+                            <span class="badge bg-secondary" id="detectedTypeBadge" style="display: none;"></span>
+                        </div>
+                        <input type="file" name="media_file" id="mediaFileInput" style="display: none;" required onchange="handleFileSelected(this)">
+                    </div>
+
+                    <!-- Cryptographic Credentials Accordion -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#cryptoOptions">
+                            <span class="fw-bold small text-warning">
+                                <i class="bi bi-key-fill me-1"></i> 2. Optional: Attach Cryptographic Digital Signature & Public Key
+                            </span>
+                            <i class="bi bi-chevron-down text-secondary"></i>
+                        </div>
+                        <div class="collapse" id="cryptoOptions">
+                            <div class="card-body pt-0 border-top border-secondary mt-2">
+                                <p class="text-muted small mb-3">
+                                    If this media was signed by a registered newsroom journalist, our system automatically looks up their verified public key. Alternatively, you can attach an external digital signature file (<code>.sig</code>) or public key (<code>.pem</code>) below:
+                                </p>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary small fw-bold">Digital Signature File (.sig)</label>
+                                        <input type="file" name="signature_file" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary small fw-bold">Signer Public Key (.pem)</label>
+                                        <input type="file" name="public_key_file" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label text-secondary small fw-bold">Or Paste Base64 Digital Signature</label>
+                                        <textarea name="signature_text" class="form-control form-control-sm font-monospace" rows="2" placeholder="eyJhbGciOi..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2" id="submitBtn">
+                        <i class="bi bi-shield-fill-check fs-5"></i>
+                        <span class="fs-5" id="btnText">Execute Authenticity & Forgery Verification</span>
+                    </button>
+                </form>
+
+                <!-- Processing Overlay Modal -->
+                <div id="loadingOverlay" style="display: none;" class="text-center py-5">
+                    <div class="spinner-border text-info mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+                    <h4 class="fw-bold">Running Verification Pipeline</h4>
+                    <p class="text-secondary small">
+                        1. Calculating SHA-256 Bit Hash &bull; 2. Verifying RSA-PSS Signature &bull; 3. Running Multi-Modal AI Detection
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function handleFileSelected(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const ext = file.name.split('.').pop().toLowerCase();
+        const prompt = document.getElementById('filePromptText');
+        const badge = document.getElementById('detectedTypeBadge');
+
+        prompt.innerText = "Selected: " + file.name + " (" + (file.size / (1024*1024)).toFixed(2) + " MB)";
+
+        badge.style.display = 'inline-block';
+        if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+            badge.className = 'badge bg-info text-dark px-3 py-2 fs-6';
+            badge.innerHTML = '<i class="bi bi-image"></i> Image Mode Detected (CLIP ViT-L/14 Engine)';
+        } else if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) {
+            badge.className = 'badge bg-warning text-dark px-3 py-2 fs-6';
+            badge.innerHTML = '<i class="bi bi-film"></i> Video Mode Detected (ConvNeXt + DCT + BiGRU Engine)';
+        } else {
+            badge.className = 'badge bg-danger px-3 py-2 fs-6';
+            badge.innerText = 'Unknown Format: ' + ext;
+        }
+    }
+}
+
+document.getElementById('verifyForm').addEventListener('submit', function() {
+    document.getElementById('verifyForm').style.display = 'none';
+    document.getElementById('loadingOverlay').style.display = 'block';
+});
+</script>
+{% endblock %}

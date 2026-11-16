@@ -1,0 +1,26 @@
+[
+  {
+    "source": "openfake",
+    "kind": "real+fake",
+    "acc": 0.5446666666666666,
+    "auc": 0.5802687222222223
+  },
+  {
+    "source": "hemg_art",
+    "kind": "real+fake",
+    "acc": 0.5336666666666666,
+    "auc": 0.6553278888888889
+  },
+  {
+    "source": "coco_real",
+    "kind": "real only (specificity)",
+    "acc": 0.808,
+    "auc": null
+  },
+  {
+    "source": "local_sdturbo",
+    "kind": "fake only (detection rate)",
+    "acc": 0.9593333333333334,
+    "auc": null
+  }
+]

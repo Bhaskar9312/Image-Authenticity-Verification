@@ -1,0 +1,447 @@
+:root {
+    --bg-primary: #070d18;
+    --bg-secondary: #0f172a;
+    --bg-card: #121c2e;
+    --bg-card-header: #17243c;
+    --border-color: #243452;
+    --border-light: #3d5485;
+    --text-primary: #ffffff;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --accent-blue: #38bdf8;
+    --accent-teal: #2dd4bf;
+    --danger-red: #fb7185;
+    --warning-amber: #fbbf24;
+    --success-green: #34d399;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Headings: Crisp white with guaranteed visibility across all pages */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* High Contrast Text Utility Overrides */
+.text-secondary {
+    color: #cbd5e1 !important; /* Bright silver-slate (WCAG AAA contrast on dark navy) */
+}
+
+.text-muted {
+    color: #94a3b8 !important; /* Visible clean slate */
+}
+
+.text-light {
+    color: #ffffff !important;
+}
+
+.text-info {
+    color: #38bdf8 !important; /* Neon sky blue */
+}
+
+.text-warning {
+    color: #fbbf24 !important; /* Warm vibrant amber */
+}
+
+.text-success {
+    color: #34d399 !important; /* Emerald green */
+}
+
+.text-danger {
+    color: #fb7185 !important; /* Rose coral red */
+}
+
+/* Navbar */
+.navbar {
+    background-color: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--accent-blue) !important;
+}
+
+.nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--accent-blue) !important;
+}
+
+/* Cards & Containers */
+.card {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px;
+    color: var(--text-primary) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.card-header {
+    background-color: var(--bg-card-header) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-weight: 600;
+    color: #ffffff !important;
+}
+
+.bg-dark {
+    background-color: #0b1324 !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.border-secondary {
+    border-color: var(--border-color) !important;
+}
+
+/* Form Labels & Text Elements */
+.form-label, label {
+    color: #e2e8f0 !important;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.form-text {
+    color: #94a3b8 !important;
+    font-size: 0.83rem;
+}
+
+/* Form Controls & Inputs */
+.form-control, .form-select, textarea {
+    background-color: #0b1324 !important;
+    border: 1px solid #2b3d63 !important;
+    color: #ffffff !important;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.form-control:focus, .form-select:focus, textarea:focus {
+    background-color: #0e1930 !important;
+    border-color: var(--accent-blue) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3) !important;
+}
+
+/* Input Placeholders */
+::placeholder {
+    color: #64748b !important;
+    opacity: 1 !important;
+}
+:-ms-input-placeholder {
+    color: #64748b !important;
+}
+::-ms-input-placeholder {
+    color: #64748b !important;
+}
+
+/* File Upload Button Styling */
+input[type="file"].form-control {
+    color: #e2e8f0 !important;
+    background-color: #0b1324 !important;
+    padding: 6px 12px;
+}
+
+input[type="file"]::file-selector-button {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border: 1px solid #38bdf8 !important;
+    border-radius: 6px !important;
+    padding: 6px 14px !important;
+    margin-right: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+/* Form Checks & Checkboxes */
+.form-check-input {
+    background-color: #0b1324 !important;
+    border-color: #38bdf8 !important;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: #0284c7 !important;
+    border-color: #38bdf8 !important;
+}
+
+.form-check-label {
+    color: #f1f5f9 !important;
+    cursor: pointer;
+}
+
+/* Input Group Addons */
+.input-group-text {
+    background-color: #17243c !important;
+    border-color: var(--border-color) !important;
+    color: #cbd5e1 !important;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #0284c7, #0ea5e9);
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: #ffffff !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0369a1, #0284c7);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+    color: #ffffff !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #059669, #10b981);
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    color: #ffffff !important;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #e11d48, #f43f5e);
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    color: #ffffff !important;
+}
+
+.btn-outline-warning {
+    color: #fbbf24 !important;
+    border-color: #fbbf24 !important;
+}
+
+.btn-outline-warning:hover {
+    background-color: #fbbf24 !important;
+    color: #0f172a !important;
+}
+
+.btn-outline-info {
+    color: #38bdf8 !important;
+    border-color: #38bdf8 !important;
+}
+
+.btn-outline-info:hover {
+    background-color: #38bdf8 !important;
+    color: #0f172a !important;
+}
+
+.btn-outline-light {
+    color: #ffffff !important;
+    border-color: #475569 !important;
+}
+
+.btn-outline-light:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+/* Badges */
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.badge.bg-secondary {
+    background-color: #243452 !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #3d5485 !important;
+}
+
+.badge-crypto-verified {
+    background-color: rgba(16, 185, 129, 0.25);
+    color: #34d399;
+    border: 1px solid #059669;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-crypto-tampered {
+    background-color: rgba(244, 63, 94, 0.25);
+    color: #fb7185;
+    border: 1px solid #e11d48;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-crypto-unsigned {
+    background-color: rgba(245, 158, 11, 0.25);
+    color: #fcd34d;
+    border: 1px solid #d97706;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+/* Alert Notifications */
+.alert {
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.alert-danger {
+    background-color: rgba(239, 68, 68, 0.18) !important;
+    border: 1px solid rgba(239, 68, 68, 0.55) !important;
+    color: #fecaca !important;
+}
+
+.alert-success {
+    background-color: rgba(16, 185, 129, 0.18) !important;
+    border: 1px solid rgba(16, 185, 129, 0.55) !important;
+    color: #a7f3d0 !important;
+}
+
+.alert-warning {
+    background-color: rgba(245, 158, 11, 0.18) !important;
+    border: 1px solid rgba(245, 158, 11, 0.55) !important;
+    color: #fde68a !important;
+}
+
+.alert-info {
+    background-color: rgba(56, 189, 248, 0.18) !important;
+    border: 1px solid rgba(56, 189, 248, 0.55) !important;
+    color: #bae6fd !important;
+}
+
+.alert-secondary {
+    background-color: rgba(148, 163, 184, 0.15) !important;
+    border: 1px solid rgba(148, 163, 184, 0.4) !important;
+    color: #e2e8f0 !important;
+}
+
+/* Tables */
+.table {
+    color: #f1f5f9 !important;
+    border-color: var(--border-color) !important;
+}
+
+.table-dark {
+    background-color: transparent !important;
+    color: #f1f5f9 !important;
+}
+
+.table-dark th {
+    color: #94a3b8 !important;
+    border-bottom: 2px solid var(--border-color) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+}
+
+.table-dark td {
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid rgba(36, 52, 82, 0.6) !important;
+}
+
+/* Progress Bars */
+.progress {
+    background-color: #0b1324;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 18px;
+    border: 1px solid var(--border-color);
+}
+
+/* Hash Fingerprint Badge */
+.hash-badge {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background-color: #070d18 !important;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color) !important;
+    color: var(--accent-blue) !important;
+    font-size: 0.88rem;
+    word-break: break-all;
+    display: inline-block;
+}
+
+/* Hero Box */
+.hero-box {
+    background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.15), transparent 60%),
+                radial-gradient(circle at bottom left, rgba(45, 212, 191, 0.10), transparent 60%),
+                var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 30px;
+}
+
+/* Statistics Pills */
+.stat-pill {
+    background-color: #121c2e;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-align: center;
+}
+
+.stat-num {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Upload Dropzone */
+.upload-dropzone {
+    border: 2px dashed var(--accent-blue);
+    background-color: rgba(56, 189, 248, 0.05);
+    border-radius: 12px;
+    padding: 35px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.upload-dropzone:hover {
+    background-color: rgba(56, 189, 248, 0.10);
+    border-color: var(--accent-teal);
+}
+
+.upload-dropzone h5 {
+    color: #ffffff !important;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 24px 0;
+    font-size: 0.88rem;
+}

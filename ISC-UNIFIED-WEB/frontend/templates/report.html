@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+{% block title %}Authenticity Report - {{ report['filename'] }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Top Summary Card -->
+        <div class="card mb-4 p-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                <div>
+                    <span class="badge bg-secondary text-uppercase px-3 py-1 mb-2">
+                        <i class="bi {% if report['media_type'] == 'image' %}bi-image{% else %}bi-film{% endif %}"></i>
+                        {{ report['media_type'] }} Forensic Report #{{ report['id'] }}
+                    </span>
+                    <h2 class="fw-bold mb-1">{{ report['filename'] }}</h2>
+                    <div class="text-secondary small">Verified on: {{ report['timestamp'] }}</div>
+                </div>
+
+                <div class="text-end">
+                    <button class="btn btn-outline-light btn-sm d-print-none" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print / Export Report
+                    </button>
+                    <a href="{{ url_for('routes.verify') }}" class="btn btn-outline-info btn-sm d-print-none ms-2">
+                        <i class="bi bi-arrow-repeat"></i> Verify Another
+                    </a>
+                </div>
+            </div>
+
+            <!-- SHA-256 Cryptographic Hash -->
+            <div class="p-3 bg-dark rounded border border-secondary mb-3">
+                <div class="text-secondary small fw-bold mb-1"><i class="bi bi-fingerprint"></i> Cryptographic SHA-256 Media Hash:</div>
+                <div class="hash-badge">{{ report['sha256_hash'] }}</div>
+            </div>
+
+            <!-- Dual Key Metric Overview Row (AI Score vs Cryptographic Status) -->
+            <div class="row g-3 mb-3">
+                <!-- AI Model Score Metric -->
+                <div class="col-md-6">
+                    <div class="p-3 bg-dark rounded border border-info h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-info fw-bold small text-uppercase">
+                                <i class="bi bi-cpu-fill me-1"></i>
+                                {% if report['media_type'] == 'image' %}
+                                Photo AI Model Score (CLIP ViT-L/14)
+                                {% else %}
+                                Video AI & Deepfake Score (ConvNeXt-BiGRU)
+                                {% endif %}
+                            </span>
+                            {% if 'REAL' in report['ai_verdict'] or 'AUTHENTIC' in report['ai_verdict'] %}
+                            <span class="badge bg-success">AUTHENTIC REAL</span>
+                            {% elif 'FAKE' in report['ai_verdict'] or 'MANIPULATED' in report['ai_verdict'] or 'GENERATED' in report['ai_verdict'] %}
+                            <span class="badge bg-danger">AI GENERATED / DEEPFAKE</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">SUSPICIOUS / UNCERTAIN</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-baseline mb-1">
+                            <div>
+                                <span class="fs-3 fw-bold text-danger">{{ report['ai_probability'] }}%</span>
+                                <span class="text-secondary small"> AI Score</span>
+                            </div>
+                            <div>
+                                <span class="fs-3 fw-bold text-success">{{ (100.0 - report['ai_probability'])|round(1) }}%</span>
+                                <span class="text-secondary small"> Real Score</span>
+                            </div>
+                        </div>
+
+                        <!-- Colored AI vs Real Progress Gauge -->
+                        <div class="progress mb-2" style="height: 12px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ report['ai_probability'] }}%;" title="AI Score: {{ report['ai_probability'] }}%"></div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ (100.0 - report['ai_probability'])|round(1) }}%;" title="Real Score: {{ (100.0 - report['ai_probability'])|round(1) }}%"></div>
+                        </div>
+                        <div class="text-muted small">
+                            Trained Model Decision: <strong class="text-light">{{ report['ai_verdict'] }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cryptographic & Modification Metric -->
+                <div class="col-md-6">
+                    <div class="p-3 bg-dark rounded border {% if report['crypto_status'] == 'VERIFIED_GENUINE' %}border-success{% elif 'TAMPERED' in report['crypto_status'] %}border-danger{% else %}border-secondary{% endif %} h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-warning fw-bold small text-uppercase">
+                                <i class="bi bi-key-fill me-1"></i> Cryptographic Provenance & Tampering
+                            </span>
+                            {% if report['crypto_status'] == 'VERIFIED_GENUINE' %}
+                            <span class="badge bg-success">GENUINE (0 BIT DRIFT)</span>
+                            {% elif report['crypto_status'] == 'TAMPERED_HASH_MISMATCH' %}
+                            <span class="badge bg-danger">HASH MISMATCH &bull; TAMPERED</span>
+                            {% elif report['crypto_status'] == 'TAMPERED_OR_INVALID_SIGNATURE' %}
+                            <span class="badge bg-danger">INVALID SIGNATURE</span>
+                            {% else %}
+                            <span class="badge bg-secondary">UNSIGNED MEDIA</span>
+                            {% endif %}
+                        </div>
+
+                        {% if report['crypto_status'] == 'VERIFIED_GENUINE' %}
+                        <div class="fs-4 fw-bold text-success my-1">
+                            <i class="bi bi-shield-check"></i> 100% Source Verified
+                        </div>
+                        <div class="text-light small">
+                            Signed by: <strong>{{ report['signer_name'] }}</strong> ({{ report['signer_org'] }})
+                        </div>
+                        <div class="text-muted small mt-1">Zero bit modification detected since journalist signing.</div>
+                        {% elif report['crypto_status'] == 'TAMPERED_HASH_MISMATCH' %}
+                        {% set diff = report['forensic_details'].get('differential_analysis', {}) %}
+                        <div class="fs-4 fw-bold text-danger my-1">
+                            <i class="bi bi-exclamation-triangle-fill"></i> {{ diff.get('manipulated_frames_pct', 100.0) }}% Frames Altered
+                        </div>
+                        <div class="text-light small">
+                            Original Asset: <strong>{{ report['forensic_details'].get('matched_original_title', 'Registered Media') }}</strong>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            Signed by {{ report['signer_name'] }} ({{ report['signer_org'] }}). Visual modifications detected after signing.
+                        </div>
+                        {% else %}
+                        <div class="fs-4 fw-bold text-secondary my-1">
+                            <i class="bi bi-question-circle"></i> Unsigned Wire Media
+                        </div>
+                        <div class="text-muted small">No verified cryptographic digital signature found in the registered news wire ledger.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Synthesized Assessment Banner -->
+            <div class="alert {% if 'AUTHENTIC & VERIFIED' in report['final_assessment'] or 'AI AUTHENTIC' in report['final_assessment'] %}alert-success{% elif 'TAMPER' in report['final_assessment'] or 'FAILED' in report['final_assessment'] %}alert-danger{% else %}alert-warning{% endif %} d-flex align-items-center gap-3 p-3 mb-0">
+                <i class="bi {% if 'AUTHENTIC' in report['final_assessment'] and 'TAMPER' not in report['final_assessment'] %}bi-check-circle-fill fs-2 text-success{% elif 'TAMPER' in report['final_assessment'] or 'FAILED' in report['final_assessment'] %}bi-exclamation-triangle-fill fs-2 text-danger{% else %}bi-shield-exclamation fs-2 text-warning{% endif %}"></i>
+                <div>
+                    <div class="fw-bold text-uppercase fs-6">Overall Multi-Domain Verdict</div>
+                    <div>{{ report['final_assessment'] }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Differential Tampering Analysis (Matched Against Registered Journalist Original) -->
+        {% if report['forensic_details'].get('differential_analysis') %}
+        {% set diff = report['forensic_details']['differential_analysis'] %}
+        <div class="card mb-4 p-4 border-danger" style="background-color: rgba(244, 63, 94, 0.05);">
+            <div class="card-header bg-transparent border-0 pb-2 px-0">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h4 class="fw-bold mb-0 text-danger">
+                        <i class="bi bi-layers-half me-2"></i> Differential Modification Analysis (vs. Authenticated Original)
+                    </h4>
+                    <span class="badge bg-danger px-3 py-2 fs-7">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Hash Mismatch &bull; Visual Tampering Detected
+                    </span>
+                </div>
+            </div>
+            <div class="card-body pt-2 px-0">
+                <div class="p-3 bg-dark rounded border border-danger mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <span class="text-secondary small d-block">Matched Newsroom Original:</span>
+                            <strong class="text-light fs-5">{{ report['forensic_details'].get('matched_original_title', 'Registered Media') }}</strong>
+                            <div class="text-info small mt-1">Uploaded & Signed by: <strong>{{ report['signer_name'] }}</strong> ({{ report['signer_org'] }})</div>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-secondary small d-block">Visual Perceptual Similarity:</span>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="fs-4 fw-bold text-warning">{{ report['forensic_details'].get('matched_similarity_pct', 94.1) }}% Match</span>
+                                <span class="badge bg-secondary">Same Visual Scene Base</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <div class="text-secondary small text-uppercase">{% if report['media_type'] == 'image' %}Altered Region Status{% else %}Manipulated Timeline Ratio{% endif %}</div>
+                            <div class="fs-3 fw-bold text-danger my-1">{{ diff['manipulated_frames_pct'] }}%</div>
+                            <div class="small text-muted">
+                                {% if report['media_type'] == 'image' %}
+                                1 of 1 keyframe altered
+                                {% else %}
+                                {{ diff['altered_frames_count'] }} of {{ diff['analyzed_frames_count'] }} frames altered
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <div class="text-secondary small text-uppercase">Average Visual Alteration Area</div>
+                            <div class="fs-3 fw-bold text-warning my-1">{{ diff['avg_pixel_manipulation_pct'] }}%</div>
+                            <div class="small text-muted">Peak modification: {{ diff['max_pixel_manipulation_pct'] }}%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <div class="text-secondary small text-uppercase">Tampering Classification</div>
+                            <div class="fs-5 fw-bold text-danger my-2">{{ diff.get('tamper_classification', 'Foreign Overlay / Splicing') }}</div>
+                            <div class="small text-muted">Non-cryptographic bit alteration</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side-by-Side Visual Comparison Panel -->
+                {% if diff.get('evidence_image_url') %}
+                <div class="p-3 bg-dark rounded border border-secondary text-center">
+                    <h6 class="fw-bold text-secondary mb-2 text-start"><i class="bi bi-eye"></i> Visual Proof: Original vs. Uploaded Query vs. Altered Region Map</h6>
+                    <img src="{{ diff['evidence_image_url'] }}" alt="Side-by-side comparison" class="img-fluid rounded border border-secondary shadow mb-2">
+                    <div class="small text-muted">
+                        Left: <strong>Original Signed Asset</strong> &bull; Center: <strong>Uploaded Query with Modifications</strong> &bull; Right: <strong>Red Highlight on Altered Pixels</strong>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 2-Column Core Evidence Breakdown -->
+        <div class="row g-4 mb-4">
+            <!-- Domain A: Cryptographic Verification -->
+            <div class="col-md-6">
+                <div class="card h-100 p-3">
+                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-warning"><i class="bi bi-key-fill me-1"></i> 1. Cryptographic Source Verification</span>
+                        {% if report['crypto_status'] == 'VERIFIED_GENUINE' %}
+                        <span class="badge-crypto-verified"><i class="bi bi-check-lg"></i> Valid Signature</span>
+                        {% elif report['crypto_status'] in ['TAMPERED_HASH_MISMATCH', 'TAMPERED_OR_INVALID_SIGNATURE'] %}
+                        <span class="badge-crypto-tampered"><i class="bi bi-x-circle"></i> Tamper Detected</span>
+                        {% else %}
+                        <span class="badge-crypto-unsigned"><i class="bi bi-question-circle"></i> Unsigned File</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-dark table-sm table-borderless small mb-0">
+                            <tr>
+                                <td class="text-secondary" style="width: 40%;">Integrity Status:</td>
+                                <td class="fw-bold">
+                                    {% if report['crypto_status'] == 'VERIFIED_GENUINE' %}
+                                    <span class="text-success">Match Confirmed (0 Bit Drift)</span>
+                                    {% elif report['crypto_status'] == 'TAMPERED_HASH_MISMATCH' %}
+                                    <span class="text-danger">Altered From Registered Original</span>
+                                    {% elif report['crypto_status'] == 'TAMPERED_OR_INVALID_SIGNATURE' %}
+                                    <span class="text-danger">File Altered / Signature Mismatch</span>
+                                    {% else %}
+                                    <span class="text-warning">No Reference Signature Found</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Signer Identity:</td>
+                                <td class="fw-bold">{{ report['signer_name'] or 'Unknown / Anonymous' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Newsroom / Org:</td>
+                                <td class="fw-bold">{{ report['signer_org'] or 'Unregistered Source' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Algorithm:</td>
+                                <td>RSA-PSS with SHA-256 (2048-bit)</td>
+                            </tr>
+                        </table>
+
+                        <div class="p-2 bg-dark rounded border border-secondary mt-3 small text-muted">
+                            <i class="bi bi-info-circle"></i> 
+                            {% if report['crypto_status'] == 'VERIFIED_GENUINE' %}
+                            Cryptographic verification proves mathematically that this exact byte stream was signed by the authenticated newsroom source and has suffered zero bit modification.
+                            {% elif report['crypto_status'] == 'TAMPERED_HASH_MISMATCH' %}
+                            Visual fingerprinting identified that this file was originally signed by the registered journalist, but its cryptographic hash does NOT match, confirming tampering after signing.
+                            {% else %}
+                            This media does not contain a verified digital signature from our registered news wire network.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domain B: AI Deepfake & Forgery Detection -->
+            <div class="col-md-6">
+                <div class="card h-100 p-3">
+                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-info">
+                            <i class="bi bi-cpu-fill me-1"></i>
+                            2. AI Forgery & Manipulation Detection
+                        </span>
+                        {% if 'REAL' in report['ai_verdict'] or 'AUTHENTIC' in report['ai_verdict'] %}
+                        <span class="badge bg-success px-3 py-1">Authentic (Real)</span>
+                        {% elif 'FAKE' in report['ai_verdict'] or 'MANIPULATED' in report['ai_verdict'] or 'GENERATED' in report['ai_verdict'] %}
+                        <span class="badge bg-danger px-3 py-1">AI Manipulated</span>
+                        {% else %}
+                        <span class="badge bg-warning px-3 py-1">Suspicious / Uncertain</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <!-- AI vs Real Explicit Percentage Split -->
+                        <div class="d-flex justify-content-between small text-secondary mb-1">
+                            <span>AI Manipulated / Deepfake: <strong class="text-danger">{{ report['ai_probability'] }}%</strong></span>
+                            <span>Authentic Camera Real: <strong class="text-success">{{ (100.0 - report['ai_probability'])|round(1) }}%</strong></span>
+                        </div>
+                        <div class="progress mb-3" style="height: 14px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ report['ai_probability'] }}%;">
+                                {{ report['ai_probability'] }}% AI
+                            </div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ (100.0 - report['ai_probability'])|round(1) }}%;">
+                                {{ (100.0 - report['ai_probability'])|round(1) }}% Real
+                            </div>
+                        </div>
+
+                        <table class="table table-dark table-sm table-borderless small mb-0">
+                            <tr>
+                                <td class="text-secondary" style="width: 45%;">Model Decision:</td>
+                                <td class="fw-bold">{{ report['ai_verdict'] }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">AI Probability Score:</td>
+                                <td class="fw-bold text-danger">{{ report['ai_probability'] }}% AI</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Real Probability Score:</td>
+                                <td class="fw-bold text-success">{{ (100.0 - report['ai_probability'])|round(1) }}% Real</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Domain Model Architecture:</td>
+                                <td class="text-info fw-bold">
+                                    {% if report['media_type'] == 'image' %}
+                                    Photo Model: CLIP ViT-L/14 Calibrated Ensemble
+                                    {% else %}
+                                    Video Model: ConvNeXt-Tiny + 8x8 DCT + BiGRU
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if report['media_type'] == 'image' %}
+                            <tr>
+                                <td class="text-secondary">Analyzed Views:</td>
+                                <td>10 multi-perspective spatial regions across {{ report['forensic_details'].get('image_dimensions', 'image') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td class="text-secondary">Analyzed Frames:</td>
+                                <td>{{ report['forensic_details'].get('video_metadata', {}).get('frames_analyzed', 0) }} frames across {{ report['forensic_details'].get('video_metadata', {}).get('duration_seconds', 0) }}s</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Specific Forensic Analytics (Subject Breakdown & Timestamps) -->
+        {% if report['media_type'] == 'video' and report['forensic_details'].get('tracked_subjects') %}
+        <div class="card mb-4 p-3">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0 text-light"><i class="bi bi-people me-2"></i> Individual Subject Forensic Tracking Breakdown</h5>
+            </div>
+            <div class="card-body pt-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-secondary small">
+                                <th>Subject Tracked</th>
+                                <th>Analyzed Frames</th>
+                                <th>AI Probability</th>
+                                <th>Real Probability</th>
+                                <th>Individual Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subj in report['forensic_details']['tracked_subjects'] %}
+                            <tr>
+                                <td class="fw-bold"><i class="bi bi-person-bounding-box text-info me-1"></i> {{ subj['subject_name'] }}</td>
+                                <td>{{ subj['frames_analyzed'] }} frames</td>
+                                <td class="text-danger fw-bold">{{ subj['ai_percentage'] }}%</td>
+                                <td class="text-success fw-bold">{{ (100.0 - subj['ai_percentage'])|round(1) }}%</td>
+                                <td>
+                                    {% if subj['status'] == 'AI MANIPULATED' %}
+                                    <span class="badge bg-danger">AI MANIPULATED</span>
+                                    {% else %}
+                                    <span class="badge bg-success">AUTHENTIC REAL</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Video Detected Manipulation Timestamps -->
+        {% if report['media_type'] == 'video' and report['forensic_details'].get('suspicious_segments') %}
+        <div class="card mb-4 p-3 border-danger">
+            <div class="card-header bg-transparent border-0 text-danger">
+                <h5 class="fw-bold mb-0"><i class="bi bi-exclamation-octagon-fill me-2"></i> Detected Manipulation Timestamp Intervals</h5>
+            </div>
+            <div class="card-body pt-0">
+                <p class="text-secondary small mb-3">Temporal video analysis isolated the following timestamps where visual modifications or deepfake artifacts exceeded the alert threshold:</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm mb-0">
+                        <thead>
+                            <tr class="text-secondary small">
+                                <th>Target Subject</th>
+                                <th>Timestamp Interval</th>
+                                <th>Duration</th>
+                                <th>Anomaly Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for seg in report['forensic_details']['suspicious_segments'] %}
+                            <tr>
+                                <td class="fw-bold text-warning">{{ seg.get('subject', 'Visual Track') }}</td>
+                                <td class="font-monospace text-info">{{ seg['start_time'] }} &rarr; {{ seg['end_time'] }}</td>
+                                <td>{{ seg.get('duration', (seg.get('end_sec', 0) - seg.get('start_sec', 0))|round(2)) }}s</td>
+                                <td><span class="badge bg-danger">{{ seg['type'] }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Forensic Modality Breakdown Cards (Spatial / Frequency / Temporal) -->
+        {% if report['media_type'] == 'video' and report['forensic_details'].get('forensic_branch_breakdown') %}
+        <div class="card mb-4 p-3">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0 text-light"><i class="bi bi-bar-chart-steps me-2"></i> Multi-Modal Forensic Branch Scores (Video Model)</h5>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row g-3">
+                    {% set f = report['forensic_details']['forensic_branch_breakdown'] %}
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <div class="text-secondary small text-uppercase">Spatial Boundary Artifacts</div>
+                            <div class="fs-3 fw-bold text-info my-1">{{ f['spatial_branch']['percentage'] }}%</div>
+                            <div class="small text-muted">Weight: {{ f['spatial_branch']['weight'] }} &bull; ConvNeXt-Tiny</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <div class="text-secondary small text-uppercase">Frequency Spectral Anomaly</div>
+                            <div class="fs-3 fw-bold text-warning my-1">{{ f['frequency_branch']['percentage'] }}%</div>
+                            <div class="small text-muted">Weight: {{ f['frequency_branch']['weight'] }} &bull; 8x8 Block DCT</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <div class="text-secondary small text-uppercase">Temporal Motion Jitter</div>
+                            <div class="fs-3 fw-bold text-success my-1">{{ f['temporal_branch']['percentage'] }}%</div>
+                            <div class="small text-muted">Weight: {{ f['temporal_branch']['weight'] }} &bull; Differential BiGRU</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Information Security Audit Context -->
+        <div class="card p-3 bg-dark border-secondary">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary small">
+                <span><i class="bi bi-shield-lock"></i> Verification Audit Log ID: <strong>#{{ report['id'] }}</strong></span>
+                <span><i class="bi bi-server"></i> System: <strong>SQLite DB + Secure Audit Logger</strong></span>
+                <span><i class="bi bi-clock"></i> Generated: <strong>{{ report['timestamp'] }}</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+
+# ==========================================
+# PHOTO MODEL - ISC_PROJECT-KOMAL
+# ==========================================
+
+/ISC_PROJECT-KOMAL/generated_fakes/
+/ISC_PROJECT-KOMAL/my_data/
+/ISC_PROJECT-KOMAL/test_images/
+
+
+# ==========================================
+# VIDEO MODEL - EXCLUDE FOLDERS
+# ==========================================
+
+/ISC-FINAL-VIDEO/data/
+/ISC-FINAL-VIDEO/debug_frames/
+/ISC-FINAL-VIDEO/debug_frames_v2/
+/ISC-FINAL-VIDEO/evidence_output/
+/ISC-FINAL-VIDEO/scratch_inspect/
+
+
+# ==========================================
+# VIDEO MODEL - EXCLUDE JSON FILES
+# ==========================================
+
+/ISC-FINAL-VIDEO/*.json
+/ISC-FINAL-VIDEO/**/*.json
+
+
+# ==========================================
+# VIDEO MODEL - EXCLUDE JPG/JPEG FILES
+# ==========================================
+
+/ISC-FINAL-VIDEO/*.jpg
+/ISC-FINAL-VIDEO/**/*.jpg
+/ISC-FINAL-VIDEO/*.jpeg
+/ISC-FINAL-VIDEO/**/*.jpeg
+
+
+# ==========================================
+# WEBSITE - EXCLUDE UPLOADS
+# ==========================================
+
+/ISC-UNIFIED-WEB/uploads/
+
+
+# ==========================================
+# PYTHON CACHE
+# ==========================================
+
+**/__pycache__/
+**/*.pyc
+
+
+# ==========================================
+# ENVIRONMENT FILES
+# ==========================================
+
+**/.env
+**/.venv/
+**/venv/
+# Large model weights - keep locally, exclude from GitHub
+/ISC-FINAL-VIDEO/checkpoints/best_forgery_detector.pt
+/ISC-UNIFIED-WEB/models/best_video_detector.pt
+/ISC-UNIFIED-WEB/models/best_forgery_detector.pt
